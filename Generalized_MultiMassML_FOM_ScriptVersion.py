@@ -224,7 +224,7 @@ def GetFOM(GBDT, testData, testIDs, plotLabels, smearValues=False, smearArray=No
 
 
 # Function to make the output histogram
-def MakeHistogram(observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5per, cont_1per, plotLabels, plotColors, lgEbins=[16.0,20.5], smearValues=False):
+def MakeHistogram(observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5per, cont_1per, plotLabels, plotColors, lgEbins=[16.0,20.5], smearValues=False, smearArray=None):
 
     plt.figure(figsize=(18.0 / 2.54, 15.0 / 2.54))
     n2, bins2, patches2 = plt.hist(pop2_pred, bins=100, histtype="step", color=plotColors[1], label=plotLabels[1])
@@ -249,7 +249,7 @@ def MakeHistogram(observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5
     plt.text(0.1, (max_counts / 2), f"Frac. Sep. {sep_pop_string} = {cont_5per:.3f} @ 5% cont.", fontsize=12)
     plt.text(0.1, (max_counts / 2.2), f"Frac. Sep. {sep_pop_string} = {cont_1per:.3f} @ 1% cont.", fontsize=12)
     plt.text(0.05, (max_counts / 1.5), f"{hadronic_model} (FOM = {fom:.2f})")
-    plt.text(0.05, (max_counts / 1.5) - 0.06, f"{observatory}")
+    plt.text(0.45, (max_counts / 1.75), f"{observatory}")
     plt.legend(loc="best", fontsize=14)
     if smearValues == True:
         plt.xlabel("GBT Regressor Output (Smeared)")
@@ -259,9 +259,17 @@ def MakeHistogram(observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5
         file_ending = ".pdf"
     plt.ylabel("Counts")
     plt.title(rf"log$_{{10}}$(E / eV) = {lgEbins[0]:.1f}-{lgEbins[1]:.1f}")
-    plt.show()
+    # Comment out for the script version
+    #plt.show()
 
-    figure_name = f"plots/GBDT_{observatory}_{hadronic_model}_{plotLabels[0]}{plotLabels[1]}_lgE_{lgEbins[0]:.1f}{lgEbins[1]:.1f}" + file_ending
+    if hadronic_model == "EPOS LHC-R":
+        had_mod = "EPOSLHCR"
+    elif hadronic_model == "Sibyll 2.3e":
+        had_mod = "Sibyll23e"
+    elif hadronic_model == "QGSJETIII-01":
+        had_mod = "QGSJETIII01"
+
+    figure_name = f"plots/GBDT_{observatory}_{had_mod}_{plotLabels[0]}{plotLabels[1]}_lgE_{lgEbins[0]:.1f}_{lgEbins[1]:.1f}" + file_ending
     plt.savefig(figure_name, bbox_inches="tight")
 
 
@@ -382,7 +390,7 @@ def PerformGBTAnalysis(filename, observatory, hadronic_model, lgEbinsFOM, pFe=Fa
     dataframe_zenCut = ApplyZenithCut(dataframe, minZen=40., maxZen=60.) # Apply zenith cut same as Fisher analysis
     dataframe_ECut = BinByEnergy(dataframe_zenCut, minLgE=16.0, maxLgE=20.5) # Apply energy cut same as Fisher analysis
 
-    gbtReg, df_train, df_test, smearLevels, _junkarray, _junkobjectives = SetupGBDT(dataframe_ECut, observatory, plotLabels, smearedGBDT=smear, analyzeModel=True, analyzeForSmearedTestData=True)
+    gbtReg, df_train, df_test, smearLevels, _junkarray, _junkobjectives = SetupGBDT(dataframe_ECut, plotLabels, smearedGBDT=smear, analyzeModel=True, analyzeForSmearedTestData=True)
 
     FOMs, contam_5per, contam_1per, events_per_bin = FOMComparisonToFisher(observatory, hadronic_model, gbtReg, df_test, lgEbinsFOM, plotLabels, plotColors,
                                                                             smearing=smear, smearLevels=smearLevels, printVals=verbose, makeHistograms=True)
