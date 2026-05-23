@@ -224,7 +224,7 @@ def GetFOM(GBDT, testData, testIDs, plotLabels, smearValues=False, smearArray=No
 
 
 # Function to make the output histogram
-def MakeHistogram(observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5per, cont_1per, plotLabels, plotColors, lgEbins=[16.0,20.5], smearValues=False, smearArray=None):
+def MakeHistogram(observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5per, cont_1per, plotLabels, plotColors, lgEbins=[16.0,20.5], smearValues=False):
 
     plt.figure(figsize=(18.0 / 2.54, 15.0 / 2.54))
     n2, bins2, patches2 = plt.hist(pop2_pred, bins=100, histtype="step", color=plotColors[1], label=plotLabels[1])
@@ -253,11 +253,16 @@ def MakeHistogram(observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5
     plt.legend(loc="best", fontsize=14)
     if smearValues == True:
         plt.xlabel("GBT Regressor Output (Smeared)")
+        file_ending = "_Smeared.pdf"
     else:
         plt.xlabel("GBT Regressor Output (True)")
+        file_ending = ".pdf"
     plt.ylabel("Counts")
     plt.title(rf"log$_{{10}}$(E / eV) = {lgEbins[0]:.1f}-{lgEbins[1]:.1f}")
     plt.show()
+
+    figure_name = f"plots/GBDT_{observatory}_{hadronic_model}_{plotLabels[0]}{plotLabels[1]}_lgE_{lgEbins[0]:.1f}{lgEbins[1]:.1f}" + file_ending
+    plt.savefig(figure_name, bbox_inches="tight")
 
 
 # Setup another function which will be used to initialize the GBDT w/ a keyword option for setting up a smeared GBDT or not.
