@@ -37,6 +37,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input", type=str, nargs="+", default=[], help="List of CORSIKA simulation ASCII files")
 parser.add_argument("--observatory", type=str, nargs="?", required=True, default="IceCube", help="Name of observatory")
 parser.add_argument("--model", type=str, nargs="?", required=True, default="EPOS LHC-R", help="Name of hadronic model")
+# Add keyword for energy proxy scaling observables or not!
 args = parser.parse_args()
 
 if args.observatory == "IceCube":
