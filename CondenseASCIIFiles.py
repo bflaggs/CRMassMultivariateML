@@ -21,7 +21,10 @@
 # /home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/NextGenModelsAuger/MODEL_NAME/*/*.txt
 
 # NOTE: Can concatenate all output .txt files into a single file using the bash command:
-# head -n 1 ONE_OUTPUT_FILE > COMBINED_FILE; tail -n +2 -q ALL_OUTPUT_FILES >> COMBINED_FILE
+# head -n 1 ONE_OUTPUT_FILE > FINAL_COMBINED_FILE; tail -n +2 -q ALL_OUTPUT_FILES >> FINAL_COMBINED_FILE
+# Example Usage:
+# head -n 1 Auger_EPOSLHCR_EnergyCorrected_Condensed_proton-16.0_16.5-atm01.txt > Auger_EPOSLHCR_EnergyCorrected_AllEnergiesAndZeniths_ForML.txt; tail -n +2 -q Auger_EPOSLHCR_EnergyCorrected_Condensed_* >> Auger_EPOSLHCR_EnergyCorrected_AllEnergiesAndZeniths_ForML.txt
+
 
 ######################
 # End of description #
@@ -101,7 +104,7 @@ def make_condensed_file(file):
 
     fileSplit = file.rsplit("/", 1)
 
-    outPath = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/ForML/NextGenModels/"
+    outPath = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/ForML/NextGenModels/" + hadronic_model + "/"
     outName = outPath + observatory + "_" + hadronic_model + energy_correction + "_Condensed_" + fileSplit[1]
     outfile = open(outName, "w")
     if args.electronXmaxScaling:
