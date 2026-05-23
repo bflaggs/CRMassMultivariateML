@@ -400,10 +400,27 @@ def PrintGBTResults(lgEbins, foms, cut_5per, cut_1per, num_events):
     print("lgE Bin (Center),   FOM,                5% Contamination,   1% Contamination,   # Events")
     [print("{:<20.1f} {:<20.2f} {:<20.3f} {:<20.3f} {:<20}".format(*bin_output)) for bin_output in eng_binned_output]
 
-#lgEBinEdges = [16.0, 16.2, 16.4, 16.6, 16.8, 17.0, 17.2, 17.4, 17.6, 17.8, 18.0, 18.2, 18.4]
 lgEBinEdges = [16.0, 16.2, 16.4, 16.6, 16.8, 17.0, 17.2, 17.4, 17.6, 17.8, 18.0, 18.2, 18.4,
                18.6, 18.8, 19.0, 19.2, 19.4, 19.6, 19.8, 20.0, 20.2, 20.4]
 
+observatory_name = "Auger"
+hadronic_model_name = "EPOS LHC-R"
+
+if hadronic_model_name == "EPOS LHC-R":
+    had_model_file = "EPOSLHCR"
+elif hadronic_model_name == "Sibyll 2.3e":
+    had_model_file = "Sibyll23e"
+elif hadronic_model_name == "QGSJETIII-01":
+    had_model_file = "QGSJETIII01"
+
+filepath = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/ForML/NextGenModels/" \
+           + f"{observatory_name}_{had_model_file}_EnergyCorrected_AllEnergiesAndZeniths_ForML.txt"
+
+# Test everything...
+eposlhcr_pfe_true_results = PerformGBTAnalysis(filepath, observatory_name, hadronic_model_name, lgEBinEdges,
+                                               pFe=True, HeO=False, pHe=False, smear=False, verbose=True)
+
+PrintGBTResults(lgEBinEdges, eposlhcr_pfe_true_results[0], eposlhcr_pfe_true_results[1], eposlhcr_pfe_true_results[2], eposlhcr_pfe_true_results[3])
 
 """# IceCube (p Fe Separation)"""
 
