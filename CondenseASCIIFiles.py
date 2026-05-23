@@ -37,7 +37,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input", type=str, nargs="+", default=[], help="List of CORSIKA simulation ASCII files")
 parser.add_argument("--observatory", type=str, nargs="?", required=True, default="IceCube", help="Name of observatory")
 parser.add_argument("--model", type=str, nargs="?", required=True, default="EPOS LHC-R", help="Name of hadronic model")
-# Add keyword for energy proxy scaling observables or not!
+parser.add_argument("--electronXmaxScaling", action="store_true", help="If set will scale observables based on the electron number at Xmax")
 args = parser.parse_args()
 
 if args.observatory == "IceCube":
@@ -51,15 +51,45 @@ elif args.observatory == "Auger":
 else:
     raise ValueError("Can not set '--observatory' to anything other than 'IceCube' or 'Auger'.")
 
+# Define constants for scaling each observable based on the selected model
 if args.model == "EPOS LHC-R":
     hadronic_model = "EPOSLHCR"
+    scale_correction = 0.01
+    eev_norm = 585508499.8882083  # zen = 0-65 deg (Auger, all zenith angles), lgE = 17.9-18.1
+    em_obslev_shift = 1.13 + scale_correction
+    mu_ann_shift = 0.93 + scale_correction - 0.01
+    em_mu_ratio_ann_shift = 0.11 + scale_correction
+    xmax_shift = 60.02 + scale_correction
+    r_shift = -0.03 + scale_correction
+    l_shift = 6.44 + scale_correction
 elif args.model == "Sibyll 2.3e":
     hadronic_model = "Sibyll23e"
+    scale_correction = 0.00
+    eev_norm = 619514957.1267722  # zen = 0-65 deg (Auger, all zenith angles), lgE = 17.9-18.1
+    em_obslev_shift = 1.16 + scale_correction
+    mu_ann_shift = 0.93  # slightly different for Sibyll 2.3e
+    em_mu_ratio_ann_shift = 0.13 + scale_correction
+    xmax_shift = 60.71 + scale_correction
+    r_shift = -0.03 + scale_correction
+    l_shift = 7.75 + scale_correction
 elif args.model == "QGSJETIII-01":
     hadronic_model = "QGSJETIII01"
+    scale_correction = 0.01
+    eev_norm = 621701443.5937785  # zen = 0-65 deg (Auger, all zenith angles), lgE = 17.9-18.1
+    em_obslev_shift = 1.14 + scale_correction
+    mu_ann_shift = 0.93 + scale_correction - 0.01
+    em_mu_ratio_ann_shift = 0.13 + scale_correction
+    xmax_shift = 58.17 + scale_correction
+    r_shift = -0.03 + scale_correction
+    l_shift = 6.28 + scale_correction
 else:
     raise ValueError("Can not set '--model' to anything other than 'EPOS LHC-R', 'Sibyll 2.3e', or 'QGSJETIII-01'.")
 
+
+if args.electronXmaxScaling:
+    energy_correction = "_EnergyCorrected"
+else:
+    energy_correction = ""
 
 def make_condensed_file(file):
     """
@@ -72,9 +102,13 @@ def make_condensed_file(file):
     fileSplit = file.rsplit("/", 1)
 
     outPath = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/ForML/NextGenModels/"
-    outName = outPath + observatory + "Condensed_" + fileSplit[1]
+    outName = outPath + observatory + energy_correction + "_Condensed_" + fileSplit[1]
     outfile = open(outName, "w")
-    outfile.write(f"#ParticleID, E(GeV), zenith, nEM_Xmax, nEM_Obslev, nEM800m, {muonsHE}, R_eMuHighE, nMu800m, R_eMu800m, Xmax, SigmaXmax, R, SigmaR, L, SigmaL\n")
+    if args.electronXmaxScaling:
+        outfile.write(f"#ParticleID, E(GeV), zenith, nEM_Xmax, nEM_Obslev, nEM800m_NOTCORRECTED, {muonsHE}_NOTCORRECTED, R_eMuHighE_NOTCORRECTED, nMu800m, R_eMu800m, Xmax, SigmaXmax, R, SigmaR, L, SigmaL\n")
+    else:
+        outfile.write(f"#ParticleID, E(GeV), zenith, nEM_Xmax, nEM_Obslev, nEM800m, {muonsHE}, R_eMuHighE, nMu800m, R_eMu800m, Xmax, SigmaXmax, R, SigmaR, L, SigmaL\n")
+
 
     with open(file, "r") as file:
         for line in file:
@@ -121,6 +155,18 @@ def make_condensed_file(file):
             
             lFit = float(cols[67])  # L from Andringa fit to .long file
             sigmaL = float(cols[68])  # Uncertainty in L from Andringa fit
+
+            if args.electronXmaxScaling:
+                nEMObslev = np.log10(nEMObslev / (nEMxmax / eev_norm) ** (em_obslev_shift))
+                nEM800mRing = nEM800mRing  # Do not correct b/c will not use
+                nMuHighE = np.log10(nMuHighE)  # Not corrected for Auger b/c not used (not for now...)        
+                ratio_eMuHighE = ratio_eMuHighE  # Not corrected for Auger b/c not used (not for now...)
+                nMu800mRing = np.log10(nMu800mRing / (nEMxmax / eev_norm) ** (mu_ann_shift))
+                ratio_eMu800mRing = ratio_eMu800mRing - (em_mu_ratio_ann_shift)*np.log10(nEMxmax / eev_norm)
+                xmaxFit = xmaxFit - (xmax_shift)*np.log10(nEMxmax / eev_norm)
+                rFit = rFit - (r_shift)*np.log10(nEMxmax / eev_norm)
+                lFit = lFit - (l_shift)*np.log10(nEMxmax / eev_norm)
+
 
             outfile.write(f"{particleID} {energy} {zenith} {nEMxmax} {nEMObslev} {nEM800mRing} {nMuHighE} {ratio_eMuHighE} {nMu800mRing} {ratio_eMu800mRing} {xmaxFit} {sigmaXmax} {rFit} {sigmaR} {lFit} {sigmaL}\n")
 
