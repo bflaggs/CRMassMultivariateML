@@ -35,7 +35,7 @@ ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input", type=str, nargs="+", default=[], help="List of CORSIKA simulation ASCII files")
-parser.add_argument("--observatory", type=str, nargs="?", required=True, default="IceCube", help="Name of observatory")
+parser.add_argument("--observatory", type=str, nargs="?", required=True, default="Auger", help="Name of observatory")
 parser.add_argument("--model", type=str, nargs="?", required=True, default="EPOS LHC-R", help="Name of hadronic model")
 parser.add_argument("--electronXmaxScaling", action="store_true", help="If set will scale observables based on the electron number at Xmax")
 args = parser.parse_args()
