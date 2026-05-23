@@ -102,7 +102,7 @@ def make_condensed_file(file):
     fileSplit = file.rsplit("/", 1)
 
     outPath = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/ForML/NextGenModels/"
-    outName = outPath + observatory + energy_correction + "_Condensed_" + fileSplit[1]
+    outName = outPath + observatory + "_" + hadronic_model + energy_correction + "_Condensed_" + fileSplit[1]
     outfile = open(outName, "w")
     if args.electronXmaxScaling:
         outfile.write(f"#ParticleID, E(GeV), zenith, nEM_Xmax, nEM_Obslev, nEM800m_NOTCORRECTED, {muonsHE}_NOTCORRECTED, R_eMuHighE_NOTCORRECTED, nMu800m, R_eMu800m, Xmax, SigmaXmax, R, SigmaR, L, SigmaL\n")
