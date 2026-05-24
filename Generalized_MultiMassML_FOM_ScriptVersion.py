@@ -148,7 +148,7 @@ def PrintFeatureImportances(importance_list, feature_list, save_importances=Fals
     if save_importances:
         file = open("model_output/feature_importances.txt", "w")
         for pair in ft_importances:
-            file.write("Observable: {:20} Importance: {}".format(*pair))
+            file.write("Observable: {:20} Importance: {}\n".format(*pair))
         file.close()
 
 
@@ -424,6 +424,9 @@ def PrintGBTResults(lgEbins, foms, cut_5per, cut_1per, num_events):
 
 
 def save_output(output_file, lg_e_bin_edges, foms, cut_5per, cut_1per, num_events):
+    if type(lg_e_bin_edges) == list:
+        lg_e_bin_edges = np.array(lg_e_bin_edges)
+
     bin_centers = (lg_e_bin_edges[:-1] + lg_e_bin_edges[1:]) / 2
 
     outfile = open(output_file, "w")
@@ -454,16 +457,20 @@ elif hadronic_model_name == "QGSJETIII-01":
 filepath = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/ForML/NextGenModels/" \
            + f"{observatory_name}_{had_model_file}_EnergyCorrected_AllEnergiesAndZeniths_ForML.txt"
 
-output_file = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/code/CRMassMultivariateML/model_output/" \
-              + f"{observatory_name}_{had_model_file}_ProtonIron_zen{zenith_edges[0]:.0f}_{zenith_edges[1]:.0f}_noSmearing_GBDToutput.txt"
+output_file_path = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/code/CRMassMultivariateML/model_output/"
+output_file_name = f"{observatory_name}_{had_model_file}_ProtonIron_zen{zenith_edges[0]:.0f}_{zenith_edges[1]:.0f}_noSmearing_GBDToutput"
+output_file = output_file_path + output_file_name + ".txt"
 
-# Test everything...
 eposlhcr_pfe_true_results = PerformGBTAnalysis(filepath, observatory_name, hadronic_model_name, lgEBinEdges, zenith_bins=zenith_edges,
                                                pFe=True, HeO=False, pHe=False, smear=False, verbose=True)
 
 PrintGBTResults(lgEBinEdges, eposlhcr_pfe_true_results[0], eposlhcr_pfe_true_results[1], eposlhcr_pfe_true_results[2], eposlhcr_pfe_true_results[3])
 
 save_output(output_file, lgEBinEdges, eposlhcr_pfe_true_results[0], eposlhcr_pfe_true_results[1], eposlhcr_pfe_true_results[2], eposlhcr_pfe_true_results[3])
+
+# Change name of feature importance file
+if os.path.exists("model_output/feature_importances.txt"):
+    os.rename("model_output/feature_importances.txt", "model_output/" + output_file_name + "_feature_importances.txt")
 
 """# IceCube (p Fe Separation)"""
 
