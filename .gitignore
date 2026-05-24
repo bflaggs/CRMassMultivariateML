@@ -1,2 +1,5 @@
 # Ignore plots
 plots/
+
+# Ignore trained model output text files
+model_output/
