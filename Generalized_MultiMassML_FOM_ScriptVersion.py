@@ -137,13 +137,19 @@ def GetDataForGBDT(dataset, dropZenith=False):
 
 
 # Function to get the feature importances and print them nicely to the screen
-def PrintFeatureImportances(importance_list, feature_list):
+def PrintFeatureImportances(importance_list, feature_list, save_importances=False):
     if type(feature_list) != list:
         feature_list = list(feature_list)
 
     ft_importances = [(feature, round(importance, 3)) for feature, importance in zip(feature_list, importance_list)]
     ft_importances = sorted(ft_importances, key = lambda x:x[1], reverse=True)
     [print("Observable: {:20} Importance: {}".format(*pair)) for pair in ft_importances]
+
+    if save_importances:
+        file = open("model_output/feature_importances.txt", "w")
+        for pair in ft_importances:
+            file.write("Observable: {:20} Importance: {}".format(*pair))
+        file.close()
 
 
 # Function to smear data (used to simulate detector response, i.e. true reconstructions)
@@ -339,7 +345,7 @@ def AnalyzeGBDT(trained_model, trainingData, trainingObjectives, original_testDa
         print("(model trained and tested on exact knowledge data)")
 
     print("Calculating model feature importances...")
-    PrintFeatureImportances(list(trained_model.feature_importances_), list(df_testdata.columns))
+    PrintFeatureImportances(list(trained_model.feature_importances_), list(df_testdata.columns), save_importances=True)
 
 # In above function, remove the part where I smear both train and test data and instead also return the train_array and trainObjectives (maybe instead of the pandas traindata df)
 # Also, take out where I calculate the scores and importances and place this in a new function called "AnalyzeGBDT" or something like this
@@ -382,12 +388,15 @@ def FOMComparisonToFisher(observatory, hadronic_model, trained_gbt, df_test_data
 
 
 # Function that does whole analysis that take the observatory, energy bins, and primary type as input
-def PerformGBTAnalysis(filename, observatory, hadronic_model, lgEbinsFOM, pFe=False, HeO=False, pHe=False, smear=False, verbose=False):
+def PerformGBTAnalysis(filename, observatory, hadronic_model, lgEbinsFOM, zenith_bins=(40.0, 60.0), pFe=False, HeO=False, pHe=False, smear=False, verbose=False):
+    if len(zenith_bins) != 2:
+        raise ValueError("Zenith bins must be defined with form like so: zenith_bins=(min_deg, max_deg)")
+    
     dataframe = ReadData(filename)
     dataframe, plotLabels, plotColors = ApplyFisherDataCuts(dataframe, ProtonIron=pFe, HeliumOxygen=HeO, ProtonHelium=pHe)
     print("\n")
 
-    dataframe_zenCut = ApplyZenithCut(dataframe, minZen=40., maxZen=60.) # Apply zenith cut same as Fisher analysis
+    dataframe_zenCut = ApplyZenithCut(dataframe, minZen=zenith_bins[0], maxZen=zenith_bins[1]) # Apply zenith cut same as Fisher analysis
     dataframe_ECut = BinByEnergy(dataframe_zenCut, minLgE=16.0, maxLgE=20.5) # Apply energy cut same as Fisher analysis
 
     gbtReg, df_train, df_test, smearLevels, _junkarray, _junkobjectives = SetupGBDT(dataframe_ECut, plotLabels, smearedGBDT=smear, analyzeModel=True, analyzeForSmearedTestData=True)
@@ -413,8 +422,24 @@ def PrintGBTResults(lgEbins, foms, cut_5per, cut_1per, num_events):
     print("lgE Bin (Center),   FOM,                5% Contamination,   1% Contamination,   # Events")
     [print("{:<20.1f} {:<20.2f} {:<20.3f} {:<20.3f} {:<20}".format(*bin_output)) for bin_output in eng_binned_output]
 
+
+def save_output(output_file, lg_e_bin_edges, foms, cut_5per, cut_1per, num_events):
+    bin_centers = (lg_e_bin_edges[:-1] + lg_e_bin_edges[1:]) / 2
+
+    outfile = open(output_file, "w")
+    outfile.write("#lgE_bin_center FOM contamination_5percent contamination_1percent num_events\n")
+
+    for i in range(len(bin_centers)):
+        outfile.write(f"{bin_centers[i]:.1f} {foms[i]} {cut_5per[i]} {cut_1per[i]} {num_events[i]}\n")
+
+    outfile.close()
+
+
+
 lgEBinEdges = [16.0, 16.2, 16.4, 16.6, 16.8, 17.0, 17.2, 17.4, 17.6, 17.8, 18.0, 18.2, 18.4,
                18.6, 18.8, 19.0, 19.2, 19.4, 19.6, 19.8, 20.0, 20.2, 20.4]
+
+zenith_edges = (40.0, 60.0)
 
 observatory_name = "Auger"
 hadronic_model_name = "EPOS LHC-R"
@@ -429,11 +454,16 @@ elif hadronic_model_name == "QGSJETIII-01":
 filepath = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/ASCIIFiles/ForML/NextGenModels/" \
            + f"{observatory_name}_{had_model_file}_EnergyCorrected_AllEnergiesAndZeniths_ForML.txt"
 
+output_file = "/home/bflaggs/Documents/Research/MassSensitiveObservablesPaper/code/CRMassMultivariateML/model_output/" \
+              + f"{observatory_name}_{had_model_file}_ProtonIron_zen{zenith_edges[0]:.0f}_{zenith_edges[1]:.0f}_noSmearing_GBDToutput.txt"
+
 # Test everything...
-eposlhcr_pfe_true_results = PerformGBTAnalysis(filepath, observatory_name, hadronic_model_name, lgEBinEdges,
+eposlhcr_pfe_true_results = PerformGBTAnalysis(filepath, observatory_name, hadronic_model_name, lgEBinEdges, zenith_bins=zenith_edges,
                                                pFe=True, HeO=False, pHe=False, smear=False, verbose=True)
 
 PrintGBTResults(lgEBinEdges, eposlhcr_pfe_true_results[0], eposlhcr_pfe_true_results[1], eposlhcr_pfe_true_results[2], eposlhcr_pfe_true_results[3])
+
+save_output(output_file, lgEBinEdges, eposlhcr_pfe_true_results[0], eposlhcr_pfe_true_results[1], eposlhcr_pfe_true_results[2], eposlhcr_pfe_true_results[3])
 
 """# IceCube (p Fe Separation)"""
 
