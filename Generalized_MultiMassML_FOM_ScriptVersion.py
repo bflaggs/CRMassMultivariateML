@@ -66,8 +66,8 @@ def ApplyFisherDataCuts(dataset, ProtonIron=False, HeliumOxygen=False, ProtonHel
         dfCuts = dfCuts[(dfCuts.ParticleID != 402) &
                         (dfCuts.ParticleID != 1608)]
         # Convert p and Fe ParticlsIDs to binaries
-        dfCuts.ParticleID[dfCuts.ParticleID == 5626] = 0
-        dfCuts.ParticleID[dfCuts.ParticleID == 14] = 1
+        dfCuts.loc[dfCuts.ParticleID == 5626, "ParticleID"] = 0
+        dfCuts.loc[dfCuts.ParticleID == 14, "ParticleID"] = 1
         plotLabels = ['Proton', 'Iron']
         plotColors = ['#CC6677', '#4477AA']
 
@@ -76,8 +76,8 @@ def ApplyFisherDataCuts(dataset, ProtonIron=False, HeliumOxygen=False, ProtonHel
         dfCuts = dfCuts[(dfCuts.ParticleID != 14) &
                         (dfCuts.ParticleID != 5626)]
         # Convert He and O ParticlsIDs to binaries
-        dfCuts.ParticleID[dfCuts.ParticleID == 1608] = 0
-        dfCuts.ParticleID[dfCuts.ParticleID == 402] = 1
+        dfCuts.loc[dfCuts.ParticleID == 1608, "ParticleID"] = 0
+        dfCuts.loc[dfCuts.ParticleID == 402, "ParticleID"] = 1
         plotLabels = ['Helium', 'Oxygen']
         plotColors = ['#DDCC77', '#117733']
 
@@ -86,16 +86,16 @@ def ApplyFisherDataCuts(dataset, ProtonIron=False, HeliumOxygen=False, ProtonHel
         dfCuts = dfCuts[(dfCuts.ParticleID != 1608) &
                         (dfCuts.ParticleID != 5626)]
         # Convert p and He ParticlsIDs to binaries
-        dfCuts.ParticleID[dfCuts.ParticleID == 402] = 0
-        dfCuts.ParticleID[dfCuts.ParticleID == 14] = 1
+        dfCuts.loc[dfCuts.ParticleID == 402, "ParticleID"] = 0
+        dfCuts.loc[dfCuts.ParticleID == 14, "ParticleID"] = 1
         plotLabels = ['Proton', 'Helium']
         plotColors = ['#CC6677', '#DDCC77']
 
     else:
         print("No keyword for separating two primary types. Instead will try separating protons from heavier primaries!")
         # Convert p and heavier ParticleIDs to binaries
-        dfCuts.ParticleID[dfCuts.ParticleID != 14] = 0 # Must do this first!
-        dfCuts.ParticleID[dfCuts.ParticleID == 14] = 1
+        dfCuts.loc[dfCuts.ParticleID != 14, "ParticleID"] = 0 # Must do this first!
+        dfCuts.loc[dfCuts.ParticleID == 14, "ParticleID"] = 1
         plotLabels = ['Proton', 'Heavier']
         plotColors = ['#CC6677', '#4477AA']
 
