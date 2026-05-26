@@ -3,3 +3,6 @@ plots/
 
 # Ignore trained model output text files
 model_output/
+
+# Python cached files
+crmass/__pycache__/
