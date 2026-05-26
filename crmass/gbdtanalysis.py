@@ -184,16 +184,11 @@ class GBDTAnalysis(object):
         pop1_gbdt_pred = gbdt_pred_test[np.nonzero(testIDs == 1)]
         pop2_gbdt_pred = gbdt_pred_test[np.nonzero(testIDs == 0)]
 
-        reverseSorted_pop2 = np.sort(pop2_gbdt_pred)[::-1]
-        pop2_5perOverlap = reverseSorted_pop2[:int(len(pop2_gbdt_pred)* 0.05)]
-        pop1_5perContamination = pop1_gbdt_pred[np.nonzero(pop1_gbdt_pred >= pop2_5perOverlap[-1])]
+        pop2_thresh5 = np.quantile(pop2_gbdt_pred, 0.95)
+        pop1_5perContamination = pop1_gbdt_pred[pop1_gbdt_pred >= pop2_thresh5]
 
-        pop2_1perOverlap = reverseSorted_pop2[:int(len(pop2_gbdt_pred)* 0.01)]
-        pop1_1perContamination = pop1_gbdt_pred[np.nonzero(pop1_gbdt_pred >= pop2_1perOverlap[-1])]
-
-        # Could update these to quantiles like so:
-        #pop2_thresh5 = np.quantile(pop2_gbdt_pred, 0.95)
-        #pop1_5perContamination = pop1_gbdt_pred[pop1_gbdt_pred >= pop2_thresh5]
+        pop2_thresh1 = np.quantile(pop2_gbdt_pred, 0.99)
+        pop1_1perContamination = pop1_gbdt_pred[pop1_gbdt_pred >= pop2_thresh1]
 
         frac_sep_pop1_5perContamination = len(pop1_5perContamination) / len(pop1_gbdt_pred)
         frac_sep_pop1_1perContamination = len(pop1_1perContamination) / len(pop1_gbdt_pred)
