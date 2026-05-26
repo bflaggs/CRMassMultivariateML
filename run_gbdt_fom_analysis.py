@@ -12,22 +12,20 @@ from crmass.gbdtanalysis import GBDTAnalysis
 # ===  Variable definitions for analysis  ===
 # ===========================================
 
-VERBOSE = True
+VERBOSE = False
 SAVE_OUTPUT = True
+ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
 
 lg_e_bin_edges = [16.0, 16.2, 16.4, 16.6, 16.8, 17.0, 17.2, 17.4, 17.6, 17.8, 18.0, 18.2, 18.4,
                   18.6, 18.8, 19.0, 19.2, 19.4, 19.6, 19.8, 20.0, 20.2, 20.4]
 
-#zenith_deg_bin_edges = [(0.0, 30.0), (40.0, 60.0)]
-zenith_deg_bin_edges = [(40.0, 60.0)]
+zenith_deg_bin_edges = [(0.0, 30.0), (40.0, 60.0)]
 
 observatory_name = "Auger"
 
-#hadronic_model_names = ["EPOS LHC-R", "Sibyll 2.3e", "QGSJETIII-01"]
-hadronic_model_names = ["EPOS LHC-R"]
+hadronic_model_names = ["EPOS LHC-R", "Sibyll 2.3e", "QGSJETIII-01"]
 
-#primaries = ["ProtonIron", "HeliumOxygen", "ProtonHelium"]
-primaries = ["ProtonIron"]
+primaries = ["ProtonIron", "HeliumOxygen", "ProtonHelium"]
 
 smear_values = [True, False]
 
@@ -80,7 +78,8 @@ for zeniths in zenith_deg_bin_edges:
                 else:
                     output_file = output_file_path + output_file_name + "_noSmearing_GBDToutput.txt"
 
-                analysis = GBDTAnalysis(save_plots=make_plots, analyze_smeared_test_data=smearing)
+                analysis = GBDTAnalysis(save_plots=make_plots, analyze_smeared_test_data=smearing,
+                                        head_directory=ABS_PATH_HERE)
 
                 results = analysis.perform_gbdt_analysis(input_file, observatory_name, model, lg_e_bin_edges,
                                                          zenith_bins=zeniths, pFe=proton_iron, HeO=helium_oxygen,
@@ -93,5 +92,6 @@ for zeniths in zenith_deg_bin_edges:
 
                     # Change name of feature importance file
                     if os.path.exists("model_output/feature_importances.txt"):
-                        ft_importance_name = output_file_name.rsplit(".", 1)[0]
+                        ft_importance_path = output_file.rsplit(".", 1)[0]
+                        ft_importance_name = ft_importance_path.rsplit("/", 1)[-1]
                         os.rename("model_output/feature_importances.txt", "model_output/" + ft_importance_name + "_feature_importances.txt")

@@ -26,10 +26,14 @@ from sklearn.ensemble import GradientBoostingRegressor
 
 class GBDTAnalysis(object):
 
-    def __init__(self, save_plots=False, analyze_smeared_test_data=False):
+    def __init__(self, save_plots=False, analyze_smeared_test_data=False, head_directory=None):
         
         self.save_plots = save_plots
         self.analyze_smeared_test_data = analyze_smeared_test_data
+        self.head_directory = head_directory
+
+        if head_directory == None:
+            self.head_directory = str(os.path.dirname(os.path.realpath(__file__)))
 
 
     # Function to read in the data and do some renaming of columns
@@ -128,7 +132,7 @@ class GBDTAnalysis(object):
             dfGBDT = dataset.drop(columns=["EnergyGeV", "nEM_Xmax", "nEM800m_NOTCORRECTED", "nMuHighE", "R_eMuHighE", "SigmaXmax", "SigmaR", "SigmaL"])
             smearLevels = [2.0 * np.pi / 180.0, 0.1, 0.1, 0.14, 20.0, 0.05, 5.0]
 
-        print("WARNING: To keep the high-energy muon number this function should be updated and the observable studied in more detail.")
+        #print("WARNING: To keep the high-energy muon number this function should be updated and the observable studied in more detail.")
 
         # Define another array which contains the labels of the particles
         particleIDs = np.array(dfGBDT["ParticleID"])
@@ -149,7 +153,7 @@ class GBDTAnalysis(object):
         [print("Observable: {:20} Importance: {}".format(*pair)) for pair in ft_importances]
 
         if save_importances:
-            file = open("../model_output/feature_importances.txt", "w")
+            file = open(f"{self.head_directory}/model_output/feature_importances.txt", "w")
             for pair in ft_importances:
                 file.write("Observable: {:20} Importance: {}\n".format(*pair))
             file.close()
@@ -262,7 +266,7 @@ class GBDTAnalysis(object):
         elif hadronic_model == "QGSJETIII-01":
             had_mod = "QGSJETIII01"
 
-        figure_name = f"../plots/GBDT_{observatory}_{had_mod}_{plotLabels[0]}{plotLabels[1]}_lgE_{lgEbins[0]:.1f}_{lgEbins[1]:.1f}" + file_ending
+        figure_name = f"{self.head_directory}/plots/GBDT_{observatory}_{had_mod}_{plotLabels[0]}{plotLabels[1]}_lgE_{lgEbins[0]:.1f}_{lgEbins[1]:.1f}" + file_ending
         plt.savefig(figure_name, bbox_inches="tight")
 
 
@@ -373,10 +377,12 @@ class GBDTAnalysis(object):
     def perform_gbdt_analysis(self, filename, observatory, hadronic_model, lgEbinsFOM, zenith_bins=(40.0, 60.0), pFe=False, HeO=False, pHe=False, smear=False, verbose=False):
         if len(zenith_bins) != 2:
             raise ValueError("Zenith bins must be defined with form like so: zenith_bins=(min_deg, max_deg)")
+
+        print("\n")
+        print(f"Setting up GBDT analysis for location {observatory} with hadronic model {hadronic_model}.")
         
         dataframe = self.read_data(filename)
         dataframe, plotLabels, plotColors = self.apply_fisher_data_cuts(dataframe, proton_iron=pFe, helium_oxygen=HeO, proton_helium=pHe)
-        print("\n")
 
         dataframe_zenCut = self.apply_zenith_cut(dataframe, min_zen=zenith_bins[0], max_zen=zenith_bins[1]) # Apply zenith cut same as Fisher analysis
         dataframe_ECut = self.bin_by_energy(dataframe_zenCut, minLgE=16.0, maxLgE=20.5) # Apply energy cut same as Fisher analysis
