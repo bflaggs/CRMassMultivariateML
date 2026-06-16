@@ -219,8 +219,9 @@ class GBDTAnalysis(object):
     def make_histogram(self, observatory, hadronic_model, pop1_pred, pop2_pred, fom, cont_5per, cont_1per, plotLabels, plotColors, lgEbins=[16.0,20.5], smearValues=False, smearArray=None):
 
         plt.figure(figsize=(18.0 / 2.54, 15.0 / 2.54))
-        n2, bins2, patches2 = plt.hist(pop2_pred, bins=100, histtype="step", color=plotColors[1], label=plotLabels[1])
-        n1, bins1, patches1 = plt.hist(pop1_pred, bins=100, histtype="step", color=plotColors[0], label=plotLabels[0])
+        nbins = int(np.sqrt(max(len(pop1_pred), len(pop2_pred))))
+        n2, bins2, patches2 = plt.hist(pop2_pred, bins=nbins, histtype="step", linewidth=2, color=plotColors[1], label=plotLabels[1])
+        n1, bins1, patches1 = plt.hist(pop1_pred, bins=nbins, histtype="step", linewidth=2, color=plotColors[0], label=plotLabels[0])
 
         if max(n2) > max(n1):
             max_counts = max(n2)
@@ -236,13 +237,14 @@ class GBDTAnalysis(object):
         pop2_5perOverlap = reverseSorted_pop2[:int(len(pop2_pred)* 0.05)]
         pop2_1perOverlap = reverseSorted_pop2[:int(len(pop2_pred)* 0.01)]
 
-        plt.vlines(pop2_5perOverlap[-1], 0, (max_counts / 3), colors="black", linestyle="dashed", label="5% Contamination")
-        plt.vlines(pop2_1perOverlap[-1], 0, (max_counts / 3), colors="black", linestyle="dotted", label="1% Contamination")
-        plt.text(0.1, (max_counts / 2), f"Frac. Sep. {sep_pop_string} = {cont_5per:.3f} @ 5% cont.", fontsize=12)
-        plt.text(0.1, (max_counts / 2.2), f"Frac. Sep. {sep_pop_string} = {cont_1per:.3f} @ 1% cont.", fontsize=12)
-        plt.text(0.05, (max_counts / 1.5), f"{hadronic_model} (FOM = {fom:.2f})")
-        plt.text(0.45, (max_counts / 1.75), f"{observatory}")
-        plt.legend(loc="best", fontsize=14)
+        plt.vlines(pop2_5perOverlap[-1], 0, (max_counts / 1.5), colors="black", linestyle="dashed", linewidth=2, label="5% Contamination")
+        plt.vlines(pop2_1perOverlap[-1], 0, (max_counts / 1.5), colors="black", linestyle="dotted", linewidth=2, label="1% Contamination")
+        plt.ylim(0, max_counts * 1.3)
+        plt.text(0.2, (max_counts * 1.0), f"{hadronic_model} (FOM = {fom:.2f})", fontsize=14)
+        plt.text(0.2, (max_counts * 0.92), rf"$\lg$(E / eV) = {lgEbins[0]:.1f}-{lgEbins[1]:.1f}, {observatory}", fontsize=14) # Add zenith range?
+        plt.text(0.2, (max_counts * 0.85), f"Frac. Sep. {sep_pop_string} = {cont_5per:.3f} @ 5% cont.", fontsize=12)
+        plt.text(0.2, (max_counts * 0.80), f"Frac. Sep. {sep_pop_string} = {cont_1per:.3f} @ 1% cont.", fontsize=12)
+        plt.legend(loc="best", fontsize=14, ncol=2)
         if smearValues == True:
             plt.xlabel("GBT Regressor Output (Smeared)")
             file_ending = "_Smeared.pdf"
@@ -250,9 +252,6 @@ class GBDTAnalysis(object):
             plt.xlabel("GBT Regressor Output (True)")
             file_ending = ".pdf"
         plt.ylabel("Counts")
-        plt.title(rf"log$_{{10}}$(E / eV) = {lgEbins[0]:.1f}-{lgEbins[1]:.1f}")
-        # Comment out for the script version
-        #plt.show()
 
         if hadronic_model == "EPOS LHC-R":
             had_mod = "EPOSLHCR"
