@@ -126,11 +126,11 @@ class GBDTAnalysis(object):
     # Function to drop columns not used in Fisher analysis and separate array of particle labels (goal) from data
     def get_data_for_gbdt(self, dataset, dropZenith=False):
         if dropZenith == True:
-            dfGBDT = dataset.drop(columns=["EnergyGeV", "zenith", "nEM_Xmax", "nEM800m_NOTCORRECTED", "nMuHighE", "R_eMuHighE", "SigmaXmax", "SigmaR", "SigmaL"])
-            smearLevels = [0.1, 0.1, 0.14, 20.0, 0.05, 5.0]
+            dfGBDT = dataset.drop(columns=["EnergyGeV", "zenith", "nEM_Xmax", "nEM_Obslev", "nEM800m_NOTCORRECTED", "nMuHighE", "R_eMuHighE", "SigmaXmax", "SigmaR", "SigmaL"])
+            smearLevels = [0.1, 0.14, 20.0, 0.05, 5.0]
         else:
-            dfGBDT = dataset.drop(columns=["EnergyGeV", "nEM_Xmax", "nEM800m_NOTCORRECTED", "nMuHighE", "R_eMuHighE", "SigmaXmax", "SigmaR", "SigmaL"])
-            smearLevels = [2.0 * np.pi / 180.0, 0.1, 0.1, 0.14, 20.0, 0.05, 5.0]
+            dfGBDT = dataset.drop(columns=["EnergyGeV", "nEM_Xmax", "nEM_Obslev", "nEM800m_NOTCORRECTED", "nMuHighE", "R_eMuHighE", "SigmaXmax", "SigmaR", "SigmaL"])
+            smearLevels = [2.0 * np.pi / 180.0, 0.1, 0.14, 20.0, 0.05, 5.0]
 
         #print("WARNING: To keep the high-energy muon number this function should be updated and the observable studied in more detail.")
 
@@ -347,7 +347,7 @@ class GBDTAnalysis(object):
             lgEBinned_test_IDs = np.array(lgEBinned_test_data["ParticleID"])
 
             if observatory in ["Auger"] and hadronic_model in ["Sibyll 2.3e", "EPOS LHC-R", "QGSJETIII-01"]:
-                lgEBinned_test_data = lgEBinned_test_data.drop(columns=["ParticleID", "EnergyGeV", "zenith", "nEM_Xmax", "nEM800m_NOTCORRECTED", "nMuHighE", "R_eMuHighE", "SigmaXmax", "SigmaR", "SigmaL"])
+                lgEBinned_test_data = lgEBinned_test_data.drop(columns=["ParticleID", "EnergyGeV", "zenith", "nEM_Xmax", "nEM_Obslev", "nEM800m_NOTCORRECTED", "nMuHighE", "R_eMuHighE", "SigmaXmax", "SigmaR", "SigmaL"])
             else:
                 raise ValueError("Unstudied choices for 'observatory' and 'hadronic_model' combination.")
 
@@ -373,7 +373,7 @@ class GBDTAnalysis(object):
             raise ValueError("Zenith bins must be defined with form like so: zenith_bins=(min_deg, max_deg)")
 
         print("\n")
-        print(f"Setting up GBDT analysis for location {observatory} with hadronic model {hadronic_model}.")
+        print(f"Setting up GBDT analysis for location {observatory} with hadronic model {hadronic_model} in zenith range {zenith_bins[0]} - {zenith_bins[1]} degrees.")
         
         dataframe = self.read_data(filename)
         dataframe, plotLabels, plotColors = self.apply_fisher_data_cuts(dataframe, proton_iron=pFe, helium_oxygen=HeO, proton_helium=pHe)
